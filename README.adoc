@@ -1,3 +1,21 @@
 = clock graph
 
 https://github.com/bootstrapworld/curriculum/issues/2232
+
+To try, open a Pyret browser IDE, e.g., https://code.pyret.org,
+and paste the code (contents of `clock-graph.arr`) into the definitions page, hit Run, and type
+`test()` in the interaction window.
+
+In `clock-graph.arr`
+
+- `radius` is the radius of the clock -- initialized to 50
+- `max_num_revolutions` is the number of turns displayed --
+  init'd to 10
+
+Change to taste. You can comment out the `stop-when` setting of
+the reactor if the clock is to run forever.
+
+The `seconds-per-click` setting (currently 1/2) can also be
+decreased to speed things up.
+
+

@@ -40,7 +40,7 @@ r = reactor:
   stop-when: stop-clock
 end
 
-fun t():
+fun test():
   interact(r)
 end
 
