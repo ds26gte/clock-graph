@@ -1,28 +1,28 @@
 include reactors
 
-fun clock-hop(n):
-  # we could ensure that n is normalized to [0, 360] here itself, 
-  # but it's easier to allow n to increase monotonically so a stop-when
-  # can be set for a certain num of revolutions -- for debugging
-  n + 30
-end
-
-radius = 50
-
 fun deg-to-rad(d):
   (d / 180) * PI
 end
 
-fun rad-to-deg(r):
-  (r / PI) * 180
+var radius = 150
+var angle-incr = 5
+var max-num-revolutions = 3
+var starting-angle = -90
+var x-coord-fn = lam(ang): radius * num-cos(deg-to-rad(ang)) end
+var y-coord-fn = lam(ang): radius * num-sin(deg-to-rad(ang)) end
+
+# ↑ using var instead of const so user can set them in interaction pane
+
+fun clock-hop(n):
+  # for every reactor tick, clock hops 30°
+  n + 30
 end
 
 var final-graph = 0
-starting-angle = -90
 
-fun draw-sin-curve(theta-range, sin-like-fn, curve-color) block:
+fun draw-coord-curve(theta-range, coord-gen-fn, curve-color, x-axis-p) block:
   proj-range = for map(theta from theta-range):
-    [list: theta, radius * sin-like-fn(deg-to-rad(theta + starting-angle))]
+    [list: theta - starting-angle, coord-gen-fn(theta)]
   end
   # spy: proj-range end
   var prev-x = 0
@@ -30,12 +30,12 @@ fun draw-sin-curve(theta-range, sin-like-fn, curve-color) block:
   var first = true
   for each(poynt from proj-range) block:
     poynt-x = poynt.get(0)
-    poynt-y = poynt.get(1)
+    poynt-y = if x-axis-p: 0 - poynt.get(1) else: poynt.get(1) end
     rel-poynt-x = poynt-x - prev-x
     rel-poynt-y = poynt-y - prev-y
     graph-seg = line(rel-poynt-x, rel-poynt-y, curve-color)
     this-ph-x = 0 - prev-x
-    this-ph-y = if rel-poynt-y > 0: 0 - prev-y else: (0 - prev-y) + rel-poynt-y end
+    this-ph-y = if rel-poynt-y < 0: 0 - prev-y else: (0 - prev-y) + rel-poynt-y end
     prev-x := poynt-x
     prev-y := poynt-y
     graph-seg-ph = place-pinhole(this-ph-x, this-ph-y, graph-seg)
@@ -47,29 +47,29 @@ fun draw-sin-curve(theta-range, sin-like-fn, curve-color) block:
   end
 end
 
-
 fun draw-clock(n) block:
-  alpha = deg-to-rad(num-modulo(n, 360))
-  n2 = rad-to-deg(alpha)
-  x-coord = radius * num-cos(alpha)
-  y-coord = radius * num-sin(alpha)
+  # spy: n end
+  x-coord = x-coord-fn(n)
+  y-coord = y-coord-fn(n)
   u-circle = circle(radius, 'outline', 'red')
   r-line = place-pinhole(
+    # ensure pinhole at 0,0 end of line
     if x-coord > 0: 0 else: 0 - x-coord end,
     if y-coord > 0: 0 else: 0 - y-coord end,
     line(x-coord, y-coord, 'darkgreen'))
   final-graph := overlay-align('pinhole', 'pinhole', r-line, u-circle)
   y-axis-line = place-pinhole(0, radius, line(0, 2 * radius, 'orange'))
   final-graph := overlay-align('pinhole', 'pinhole', y-axis-line, final-graph)
-  theta-range = range-by(0, (n2 - starting-angle) + 1, 5)
-  draw-sin-curve(theta-range, num-sin, 'blue')
-  draw-sin-curve(theta-range, num-cos, 'purple')
+  theta-range = range-by(starting-angle, n + 1, angle-incr)
+  # spy: theta-range end
+  draw-coord-curve(theta-range, x-coord-fn, 'purple', true)
+  draw-coord-curve(theta-range, y-coord-fn, 'blue', false)
   final-graph
 end
 
-fun stop-clock(n): 
-  max-num-revolutions = 100
+fun stop-clock(n):
   n >= (max-num-revolutions * 360)
+  # false # forever
 end
 
 r = reactor:
