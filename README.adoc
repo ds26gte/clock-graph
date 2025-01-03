@@ -3,8 +3,9 @@
 https://github.com/bootstrapworld/curriculum/issues/2232
 
 To try, open a Pyret browser IDE, e.g., https://code.pyret.org,
-and paste the code (contents of `clock-graph.arr`) into the definitions page, hit Run, and type
-`t()` in the interaction window.
+and paste the code (contents of `clock-graph.arr`) into the
+definitions pane, hit Run, and type
+`t()` in the interaction pane.
 
 In `clock-graph.arr`
 

@@ -51,15 +51,19 @@ fun draw-clock(n) block:
   # spy: n end
   x-coord = x-coord-fn(n)
   y-coord = y-coord-fn(n)
+  containing-rect = place-pinhole(radius, radius, rectangle(9 * radius, 2 * radius, 'outline', 'pink'))
   u-circle = circle(radius, 'outline', 'red')
+  circle-in-rect = overlay-align('pinhole', 'pinhole', u-circle, containing-rect)
   r-line = place-pinhole(
     # ensure pinhole at 0,0 end of line
     if x-coord > 0: 0 else: 0 - x-coord end,
     if y-coord > 0: 0 else: 0 - y-coord end,
     line(x-coord, y-coord, 'darkgreen'))
-  final-graph := overlay-align('pinhole', 'pinhole', r-line, u-circle)
+  final-graph := overlay-align('pinhole', 'pinhole', r-line, circle-in-rect)
   y-axis-line = place-pinhole(0, radius, line(0, 2 * radius, 'orange'))
-  final-graph := overlay-align('pinhole', 'pinhole', y-axis-line, final-graph)
+  x-axis-line = place-pinhole(0, 0, line(9 * radius, 0, 'orange'))
+  axes-lines = overlay-align('pinhole', 'pinhole', x-axis-line, y-axis-line)
+  final-graph := overlay-align('pinhole', 'pinhole', axes-lines, final-graph)
   theta-range = range-by(starting-angle, n + 1, angle-incr)
   # spy: theta-range end
   draw-coord-curve(theta-range, x-coord-fn, 'purple', true)
