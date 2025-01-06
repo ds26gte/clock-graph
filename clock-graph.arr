@@ -17,11 +17,14 @@ var starting-angle = deg-to-rad(-90)
 var x-coord-fn = lam(ang): radius * num-cos(ang) end
 var y-coord-fn = lam(ang): radius * num-sin(ang) end
 var x-scaler = rad-to-deg
+var notch-dia = 2
 
 # following should not be changed
 
 one-deg-in-rad = deg-to-rad(1)
 thirty-deg-in-rad = deg-to-rad(30)
+
+notch = circle(notch-dia, 'solid', 'black')
 
 fun clock-hop(n):
   # for every reactor tick, clock hops 30°
@@ -57,6 +60,16 @@ fun draw-coord-curve(theta-range, coord-gen-fn, curve-color, x-axis-p) block:
   end
 end
 
+fun make-notched-x-axis-line() block:
+  x-axis-len = 9 * radius
+  var x-axis-line = place-pinhole(0,0, line(x-axis-len, 0, 'orange'))
+  notch-range = range-by(0, x-axis-len, 30)
+  for map(notch-angle from notch-range):
+    x-axis-line := overlay-align('pinhole', 'pinhole', place-pinhole(0 - notch-angle,0, notch), x-axis-line)
+  end
+  x-axis-line
+end
+
 fun draw-clock(n) block:
   # spy: n end
   x-coord = x-coord-fn(n)
@@ -71,7 +84,8 @@ fun draw-clock(n) block:
     line(x-coord, y-coord, 'darkgreen'))
   final-graph := overlay-align('pinhole', 'pinhole', r-line, circle-in-rect)
   y-axis-line = place-pinhole(0, radius, line(0, 2 * radius, 'orange'))
-  x-axis-line = place-pinhole(0, 0, line(9 * radius, 0, 'orange'))
+  # x-axis-line = place-pinhole(0, 0, line(9 * radius, 0, 'orange'))
+  x-axis-line = make-notched-x-axis-line()
   axes-lines = overlay-align('pinhole', 'pinhole', x-axis-line, y-axis-line)
   final-graph := overlay-align('pinhole', 'pinhole', axes-lines, final-graph)
   theta-range = range-by(starting-angle, n + one-deg-in-rad, angle-incr)
