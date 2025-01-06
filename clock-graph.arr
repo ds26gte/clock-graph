@@ -1,28 +1,38 @@
 include reactors
 
 fun deg-to-rad(d):
-  (d / 180) * PI
+  num-exact((d / 180) * PI)
 end
 
-var radius = 150
-var angle-incr = 5
-var max-num-revolutions = 3
-var starting-angle = -90
-var x-coord-fn = lam(ang): radius * num-cos(deg-to-rad(ang)) end
-var y-coord-fn = lam(ang): radius * num-sin(deg-to-rad(ang)) end
+fun rad-to-deg(r):
+  num-exact((r / PI) * 180)
+end
 
-# ↑ using var instead of const so user can set them in interaction pane
+# following vars are user-changeable (in interaction pane)
+
+var radius = 150
+var angle-incr = deg-to-rad(5)
+var max-num-revolutions = 3
+var starting-angle = deg-to-rad(-90)
+var x-coord-fn = lam(ang): radius * num-cos(ang) end
+var y-coord-fn = lam(ang): radius * num-sin(ang) end
+var x-scaler = rad-to-deg
+
+# following should not be changed
+
+one-deg-in-rad = deg-to-rad(1)
+thirty-deg-in-rad = deg-to-rad(30)
 
 fun clock-hop(n):
   # for every reactor tick, clock hops 30°
-  n + 30
+  n + thirty-deg-in-rad
 end
 
 var final-graph = 0
 
 fun draw-coord-curve(theta-range, coord-gen-fn, curve-color, x-axis-p) block:
   proj-range = for map(theta from theta-range):
-    [list: theta - starting-angle, coord-gen-fn(theta)]
+    [list: x-scaler(theta - starting-angle), coord-gen-fn(theta)]
   end
   # spy: proj-range end
   var prev-x = 0
@@ -64,7 +74,7 @@ fun draw-clock(n) block:
   x-axis-line = place-pinhole(0, 0, line(9 * radius, 0, 'orange'))
   axes-lines = overlay-align('pinhole', 'pinhole', x-axis-line, y-axis-line)
   final-graph := overlay-align('pinhole', 'pinhole', axes-lines, final-graph)
-  theta-range = range-by(starting-angle, n + 1, angle-incr)
+  theta-range = range-by(starting-angle, n + one-deg-in-rad, angle-incr)
   # spy: theta-range end
   draw-coord-curve(theta-range, x-coord-fn, 'purple', true)
   draw-coord-curve(theta-range, y-coord-fn, 'blue', false)
@@ -72,7 +82,7 @@ fun draw-clock(n) block:
 end
 
 fun stop-clock(n):
-  n >= (max-num-revolutions * 360)
+  n >= (max-num-revolutions * 2 * PI)
   # false # forever
 end
 
