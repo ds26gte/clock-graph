@@ -24,7 +24,32 @@ var notch-radius = 2
 one-deg-in-rad = deg-to-rad(1)
 thirty-deg-in-rad = deg-to-rad(30)
 
+# this is 30, but only because x-scaler is rad-to-deg.
+# can't hardwire, because for a different x-scaler, it can be something else
+thirty-deg = x-scaler(PI / 6)
+# similarly: 90
+ninety-deg = x-scaler(PI / 2)
+
+# notch = place-pinhole(notch-radius, notch-radius, circle(notch-radius, 'solid', 'black'))
 notch = circle(notch-radius, 'solid', 'black')
+
+fun make-number-sign(num):
+  text(num-to-string(num), 14, 'black')
+end
+
+fun make-clock-number-sign(num):
+  text(num-to-string(num), 16, 'red')
+end
+
+twelve-o-clock = make-clock-number-sign(12)
+three-o-clock = make-clock-number-sign(3)
+six-o-clock = make-clock-number-sign(6)
+nine-o-clock = make-clock-number-sign(9)
+
+x-twelve-o-clock = make-number-sign(12)
+x-three-o-clock = make-number-sign(3)
+x-six-o-clock = make-number-sign(6)
+x-nine-o-clock = make-number-sign(9)
 
 fun clock-hop(n):
   # for every reactor tick, clock hops 30°
@@ -71,13 +96,36 @@ end
 fun make-notched-x-axis-line() block:
   x-axis-len = 9 * radius
   var x-axis-line = place-pinhole(0,0, line(x-axis-len, 0, 'orange'))
-  notch-range = range-by(0, x-axis-len, 30)
+  num-notches = num-floor(x-axis-len / thirty-deg)
+  notch-range = range-by(0, num-notches, 1)
   # for each angle (represented as length on the x-axis), place the notch's pinhole
   # relative to the axis-pinhole by subtracting the "angle length" relative
   # to the center of the circle and add it to x-axis-line
-  for map(notch-angle from notch-range):
+  for map(notch-num from notch-range) block:
+    notch-num-within-12 = num-modulo(notch-num, 12)
+    notch-angle = notch-num * thirty-deg
     x-axis-line := overlay-align('pinhole', 'pinhole',
     place-pinhole((-1 * notch-angle) + notch-radius, notch-radius, notch), x-axis-line)
+    # if at an angle corresponding to 3,6,9,12 o'clock, add label
+    var marker = 'ignore'
+    if notch-num-within-12 == 3:
+      marker := x-three-o-clock
+    else if notch-num-within-12 == 6:
+      marker := x-six-o-clock
+    else if notch-num-within-12 == 9:
+      marker := x-nine-o-clock
+    else if notch-num-within-12 == 0:
+      marker := x-twelve-o-clock
+    else:
+      marker := 'ignore'
+    end
+    if (notch-num-within-12 == 3) or (notch-num-within-12 == 6) or (notch-num-within-12 == 9) or (notch-num-within-12 == 0):
+      x-axis-line := overlay-align('pinhole', 'pinhole',
+      place-pinhole((-1 * notch-angle) + notch-radius, notch-radius - 10, marker),
+      x-axis-line)
+    else:
+      marker := 'ignore'
+    end
   end
   x-axis-line
 end
@@ -92,7 +140,18 @@ fun draw-clock(n) block:
   x-coord = cos-fn(nn)
   y-coord = sin-fn(nn)
   containing-rect = place-pinhole(radius, radius, rectangle(9 * radius, 2 * radius, 'outline', 'pink'))
-  u-circle = circle(radius, 'outline', 'red')
+  var u-circle = circle(radius, 'outline', 'red')
+
+  # mark clock face with 3,6,9,12
+  u-circle := overlay-align('pinhole', 'pinhole', u-circle,
+    place-pinhole(0, radius - 5, twelve-o-clock))
+  u-circle := overlay-align('pinhole', 'pinhole', u-circle,
+    place-pinhole((-1 * radius) + 15, -5, three-o-clock))
+  u-circle := overlay-align('pinhole', 'pinhole', u-circle,
+    place-pinhole(-5, (-1 * radius) + 20, six-o-clock))
+  u-circle := overlay-align('pinhole', 'pinhole', u-circle,
+    place-pinhole(radius - 5, 0, nine-o-clock))
+
   final-graph := overlay-align('pinhole', 'pinhole', u-circle, containing-rect)
 
   # create the "clock hand"
