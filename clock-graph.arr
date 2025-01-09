@@ -11,20 +11,22 @@ end
 # following vars are user-changeable (in interaction pane)
 
 var radius = 150
-deg-incr = 5
+deg-incr = 1
 var angle-incr = deg-to-rad(deg-incr)
 var max-num-revolutions = 3
 var cos-fn = lam(ang): radius * num-cos(ang) end
 var sin-fn = lam(ang): radius * num-sin(ang) end
 var x-scaler = rad-to-deg
 var notch-radius = 2
-var x-color = 'purple'
-var y-color = 'blue'
+var sin-color   = 'red'
+var cos-color   = 'blue'
+var axis-color  = 'grey'
+var clock-color = 'darkgreen'
 
 # following should not be changed
 
-one-deg-in-rad = deg-to-rad(1)
-thirty-deg-in-rad = deg-to-rad(30)
+# one-deg-in-rad = deg-to-rad(1)
+# five-deg-in-rad = deg-to-rad(5)
 
 # this is 30, but only because x-scaler is rad-to-deg.
 # can't hardwire, because for a different x-scaler, it can be something else
@@ -36,11 +38,11 @@ ninety-deg = x-scaler(PI / 2)
 notch = circle(notch-radius, 'solid', 'black')
 
 fun make-number-sign(num):
-  text(num-to-string(num), 14, 'black')
+  text(num-to-string(num), 12, 'black')
 end
 
 fun make-clock-number-sign(num):
-  text(num-to-string(num), 16, 'red')
+  text(num-to-string(num), 20, clock-color)
 end
 
 twelve-o-clock = make-clock-number-sign(12)
@@ -54,8 +56,7 @@ x-six-o-clock = make-number-sign(6)
 x-nine-o-clock = make-number-sign(9)
 
 fun clock-hop(n):
-  # for every reactor tick, clock hops 30°
-  n + thirty-deg-in-rad
+  n + angle-incr
 end
 
 var final-graph = 0
@@ -106,7 +107,7 @@ end
 
 fun make-notched-x-axis-line() block:
   x-axis-len = 10 * radius
-  var x-axis-line = place-pinhole(radius,0, line(x-axis-len, 0, 'orange'))
+  var x-axis-line = place-pinhole(radius,0, line(x-axis-len, 0, axis-color))
   num-notches = num-floor(x-axis-len / thirty-deg)
   notch-range = range-by(0, num-notches, 1)
   # for each angle (represented as length on the x-axis), place the notch's pinhole
@@ -151,7 +152,7 @@ fun draw-clock(n) block:
   x-coord = cos-fn(nn)
   y-coord = sin-fn(nn)
   containing-rect = place-pinhole(radius, radius, rectangle(9 * radius, 2 * radius, 'outline', 'pink'))
-  var u-circle = circle(radius, 'outline', 'red')
+  var u-circle = circle(radius, 'outline', clock-color)
 
   # mark clock face with 3,6,9,12
   u-circle := overlay-align('pinhole', 'pinhole', u-circle,
@@ -173,13 +174,13 @@ fun draw-clock(n) block:
     line(x-coord, y-coord, 'darkgreen'))
 
   # create the x- and y-axis, then add them together
-  y-axis-line = place-pinhole(0, radius, line(0, 2 * radius, 'orange'))
+  y-axis-line = place-pinhole(0, radius, line(0, 2 * radius, axis-color))
   x-axis-line = make-notched-x-axis-line()
   axes-lines = overlay-align('pinhole', 'pinhole', x-axis-line, y-axis-line)
 
   # add the axes to the graph
   final-graph := overlay-align('pinhole', 'pinhole', axes-lines, final-graph)
-  theta-range = range-by(0, n + one-deg-in-rad, angle-incr)
+  theta-range = range-by(0, n + angle-incr, angle-incr)
 
   # add the clock hand to the graph
   final-graph := overlay-align('pinhole', 'pinhole', r-line, final-graph)
@@ -187,15 +188,15 @@ fun draw-clock(n) block:
   # add clock hand projection lines to graph
 
 
-  along-x-drop = place-pinhole(if x-coord > 0: 0 else: 0 - x-coord end, 0 - y-coord, line(x-coord,0, x-color))
-  along-y-drop = place-pinhole(0 - x-coord, if y-coord > 0: 0 else: 0 - y-coord end, line(0,y-coord, y-color))
+  along-x-drop = place-pinhole(if x-coord > 0: 0 else: 0 - x-coord end, 0 - y-coord, line(x-coord,0, sin-color))
+  along-y-drop = place-pinhole(0 - x-coord, if y-coord > 0: 0 else: 0 - y-coord end, line(0,y-coord, cos-color))
 
   final-graph := overlay-align('pinhole', 'pinhole', along-x-drop, final-graph)
   final-graph := overlay-align('pinhole', 'pinhole', along-y-drop, final-graph)
 
   # spy: theta-range end
-  draw-coord-curve(theta-range, cos-fn, x-color)
-  draw-coord-curve(theta-range, sin-fn, y-color)
+  draw-coord-curve(theta-range, cos-fn, cos-color)
+  draw-coord-curve(theta-range, sin-fn, sin-color)
   final-graph
 end
 
@@ -206,7 +207,7 @@ end
 
 r = reactor:
   init: 0,
-  seconds-per-tick: 1/2,
+  seconds-per-tick: 1/10,
   on-tick: clock-hop,
   to-draw: draw-clock,
   stop-when: stop-clock
