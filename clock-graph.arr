@@ -93,6 +93,15 @@ fun draw-coord-curve(theta-range, coord-gen-fn, curve-color) block:
     # add the segment to the graph
     final-graph := overlay-align('pinhole', 'pinhole', graph-seg-ph, final-graph)
   end
+  final-graph := overlay-align('pinhole', 'pinhole',
+  # place-pinhole(if prev-x > 0: 0 else: 0 - prev-x end,
+  # if prev-y > 0: 0 else: 0 - prev-y end,
+  #   line(prev-x, prev-y, curve-color)),
+  #   final-graph)
+  place-pinhole(0 - prev-x,
+  if prev-y > 0: 0 else: 0 - prev-y end,
+    line(0, prev-y, curve-color)),
+    final-graph)
 end
 
 fun make-notched-x-axis-line() block:
