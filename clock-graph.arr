@@ -18,6 +18,8 @@ var cos-fn = lam(ang): radius * num-cos(ang) end
 var sin-fn = lam(ang): radius * num-sin(ang) end
 var x-scaler = rad-to-deg
 var notch-radius = 2
+var x-color = 'purple'
+var y-color = 'blue'
 
 # following should not be changed
 
@@ -94,8 +96,8 @@ fun draw-coord-curve(theta-range, coord-gen-fn, curve-color) block:
 end
 
 fun make-notched-x-axis-line() block:
-  x-axis-len = 9 * radius
-  var x-axis-line = place-pinhole(0,0, line(x-axis-len, 0, 'orange'))
+  x-axis-len = 10 * radius
+  var x-axis-line = place-pinhole(radius,0, line(x-axis-len, 0, 'orange'))
   num-notches = num-floor(x-axis-len / thirty-deg)
   notch-range = range-by(0, num-notches, 1)
   # for each angle (represented as length on the x-axis), place the notch's pinhole
@@ -173,9 +175,18 @@ fun draw-clock(n) block:
   # add the clock hand to the graph
   final-graph := overlay-align('pinhole', 'pinhole', r-line, final-graph)
 
+  # add clock hand projection lines to graph
+
+
+  along-x-drop = place-pinhole(if x-coord > 0: 0 else: 0 - x-coord end, 0 - y-coord, line(x-coord,0, x-color))
+  along-y-drop = place-pinhole(0 - x-coord, if y-coord > 0: 0 else: 0 - y-coord end, line(0,y-coord, y-color))
+
+  final-graph := overlay-align('pinhole', 'pinhole', along-x-drop, final-graph)
+  final-graph := overlay-align('pinhole', 'pinhole', along-y-drop, final-graph)
+
   # spy: theta-range end
-  draw-coord-curve(theta-range, cos-fn, 'purple')
-  draw-coord-curve(theta-range, sin-fn, 'blue')
+  draw-coord-curve(theta-range, cos-fn, x-color)
+  draw-coord-curve(theta-range, sin-fn, y-color)
   final-graph
 end
 
