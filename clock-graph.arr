@@ -22,6 +22,7 @@ var sin-color   = 'red'
 var cos-color   = 'blue'
 var axis-color  = 'grey'
 var clock-color = 'darkgreen'
+var draw-moving-line-p = true
 
 # following should not be changed
 
@@ -94,20 +95,21 @@ fun draw-coord-curve(theta-range, coord-gen-fn, curve-color) block:
     # add the segment to the graph
     final-graph := overlay-align('pinhole', 'pinhole', graph-seg-ph, final-graph)
   end
-  final-graph := overlay-align('pinhole', 'pinhole',
-  # place-pinhole(if prev-x > 0: 0 else: 0 - prev-x end,
-  # if prev-y > 0: 0 else: 0 - prev-y end,
-  #   line(prev-x, prev-y, curve-color)),
-  #   final-graph)
-  place-pinhole(0 - prev-x,
-  if prev-y > 0: 0 else: 0 - prev-y end,
+
+  if draw-moving-line-p:
+    final-graph := overlay-align('pinhole', 'pinhole',
+    place-pinhole(0 - prev-x
+    , if prev-y > 0: 0 else: 0 - prev-y end,
     line(0, prev-y, curve-color)),
     final-graph)
+  else: false
+  end
+
 end
 
 fun make-notched-x-axis-line() block:
-  x-axis-len = 10 * radius
-  var x-axis-line = place-pinhole(radius,0, line(x-axis-len, 0, axis-color))
+  x-axis-len = 8 * radius
+  var x-axis-line = place-pinhole(0,0, line(x-axis-len, 0, axis-color))
   num-notches = num-floor(x-axis-len / thirty-deg)
   notch-range = range-by(0, num-notches, 1)
   # for each angle (represented as length on the x-axis), place the notch's pinhole
@@ -154,6 +156,8 @@ fun draw-clock(n) block:
   containing-rect = place-pinhole(radius, radius, rectangle(9 * radius, 2 * radius, 'outline', 'pink'))
   var u-circle = circle(radius, 'outline', clock-color)
 
+  u-circle := overlay-align('pinhole', 'pinhole', u-circle, notch)
+
   # mark clock face with 3,6,9,12
   u-circle := overlay-align('pinhole', 'pinhole', u-circle,
     place-pinhole(0, radius - 5, twelve-o-clock))
@@ -164,6 +168,12 @@ fun draw-clock(n) block:
   u-circle := overlay-align('pinhole', 'pinhole', u-circle,
     place-pinhole(radius - 5, 0, nine-o-clock))
 
+  u-circle := overlay-align('pinhole', 'pinhole', u-circle,
+  place-pinhole(0, radius, line(0, radius * 2, axis-color)))
+
+  u-circle := overlay-align('pinhole', 'pinhole', u-circle,
+  place-pinhole(radius, 0, line(radius * 2, 0, axis-color)))
+
   final-graph := overlay-align('pinhole', 'pinhole', u-circle, containing-rect)
 
   # create the "clock hand"
@@ -173,6 +183,20 @@ fun draw-clock(n) block:
     if y-coord > 0: 0 else: 0 - y-coord end,
     line(x-coord, y-coord, 'darkgreen'))
 
+  # add the clock hand to the graph
+  final-graph := overlay-align('pinhole', 'pinhole', r-line, final-graph)
+
+  # add clock hand projection lines to graph
+
+  along-x-drop = place-pinhole(if x-coord > 0: 0 else: 0 - x-coord end, 0 - y-coord, line(x-coord,0, sin-color))
+  along-y-drop = place-pinhole(0 - x-coord, if y-coord > 0: 0 else: 0 - y-coord end, line(0,y-coord, cos-color))
+
+  final-graph := overlay-align('pinhole', 'pinhole', along-x-drop, final-graph)
+  final-graph := overlay-align('pinhole', 'pinhole', along-y-drop, final-graph)
+
+  # shift circle part leftward out of the way of the graph
+  final-graph := place-pinhole(radius * 2.5, radius, final-graph)
+
   # create the x- and y-axis, then add them together
   y-axis-line = place-pinhole(0, radius, line(0, 2 * radius, axis-color))
   x-axis-line = make-notched-x-axis-line()
@@ -181,18 +205,6 @@ fun draw-clock(n) block:
   # add the axes to the graph
   final-graph := overlay-align('pinhole', 'pinhole', axes-lines, final-graph)
   theta-range = range-by(0, n + angle-incr, angle-incr)
-
-  # add the clock hand to the graph
-  final-graph := overlay-align('pinhole', 'pinhole', r-line, final-graph)
-
-  # add clock hand projection lines to graph
-
-
-  along-x-drop = place-pinhole(if x-coord > 0: 0 else: 0 - x-coord end, 0 - y-coord, line(x-coord,0, sin-color))
-  along-y-drop = place-pinhole(0 - x-coord, if y-coord > 0: 0 else: 0 - y-coord end, line(0,y-coord, cos-color))
-
-  final-graph := overlay-align('pinhole', 'pinhole', along-x-drop, final-graph)
-  final-graph := overlay-align('pinhole', 'pinhole', along-y-drop, final-graph)
 
   # spy: theta-range end
   draw-coord-curve(theta-range, cos-fn, cos-color)
