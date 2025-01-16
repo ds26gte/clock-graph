@@ -10,7 +10,7 @@ end
 
 # following vars are user-changeable (in interaction pane)
 
-var radius = 150
+var radius = 100
 deg-incr = 1
 var angle-incr = deg-to-rad(deg-incr)
 var max-num-revolutions = 3
@@ -108,7 +108,7 @@ fun draw-coord-curve(theta-range, coord-gen-fn, curve-color) block:
 end
 
 fun make-notched-x-axis-line() block:
-  x-axis-len = 8 * radius
+  x-axis-len = 7.5 * radius
   var x-axis-line = place-pinhole(0,0, line(x-axis-len, 0, axis-color))
   num-notches = num-floor(x-axis-len / thirty-deg)
   notch-range = range-by(0, num-notches, 1)
@@ -153,7 +153,7 @@ fun draw-clock(n) block:
   nn = n - (PI / 2)
   x-coord = cos-fn(nn)
   y-coord = sin-fn(nn)
-  containing-rect = place-pinhole(radius, radius, rectangle(9 * radius, 2 * radius, 'outline', 'pink'))
+  containing-rect = place-pinhole(radius, radius, rectangle(10 * radius, 2 * radius, 'outline', 'pink'))
   var u-circle = circle(radius, 'outline', clock-color)
 
   u-circle := overlay-align('pinhole', 'pinhole', u-circle, notch)
@@ -219,7 +219,7 @@ end
 
 r = reactor:
   init: 0,
-  seconds-per-tick: 1/10,
+  seconds-per-tick: 1/20,
   on-tick: clock-hop,
   to-draw: draw-clock,
   stop-when: stop-clock
